@@ -44,10 +44,11 @@ for i in range(0, (config.PINFORMAT_CONFIG.AF_NUM + 1)):
 fout.write('\n')
 
 i = 0
+pinmap = []
 while i * (config.PINFORMAT_CONFIG.AF_NUM + 2) < (len(datalist) - (config.PINFORMAT_CONFIG.AF_NUM + 1)):
-    tempout = datalist[i * (config.PINFORMAT_CONFIG.AF_NUM + 2):(i+1) * (config.PINFORMAT_CONFIG.AF_NUM + 2)]
-    print(tempout)
-    fout.write(','.join(tempout) + '\n')
+    pinmap.append(datalist[i * (config.PINFORMAT_CONFIG.AF_NUM + 2):(i+1) * (config.PINFORMAT_CONFIG.AF_NUM + 2)])
+    print(pinmap[i])
+    fout.write(','.join(pinmap[i]) + '\n')
     i = i + 1
 fout.close()
 
