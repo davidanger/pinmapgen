@@ -1,4 +1,5 @@
 import config
+import re
 
 # open input file
 fin = open(config.DATA.INPUT_FILE, 'r')
@@ -36,19 +37,56 @@ while datain.find('\n') > 0:
 # convert input to a list
 datalist = datain.split()
 
-# Output CSV format
-fout = open(config.DATA.OUTPUT_FILE, 'w')
-fout.write('PIN')
-for i in range(0, (config.PINFORMAT_CONFIG.AF_NUM + 1)):
-    fout.write(',AF{:d}'.format(i))
-fout.write('\n')
-
+# Making pinmap
 i = 0
 pinmap = []
 while i * (config.PINFORMAT_CONFIG.AF_NUM + 2) < (len(datalist) - (config.PINFORMAT_CONFIG.AF_NUM + 1)):
     pinmap.append(datalist[i * (config.PINFORMAT_CONFIG.AF_NUM + 2):(i+1) * (config.PINFORMAT_CONFIG.AF_NUM + 2)])
     print(pinmap[i])
-    fout.write(','.join(pinmap[i]) + '\n')
     i = i + 1
-fout.close()
 
+# Add NUCLEO pin map
+# Read input file
+fin = open(config.NUCLEO.INPUT_FILE, 'r')
+datain = fin.read()
+fin.close()
+
+# make pin list
+datalist = datain.split('\n')
+for i in range(0, len(datalist)):
+    datalist[i] = datalist[i].split('\t')
+    datalist[i] = datalist[i][2:6]
+
+# merge to pinmap
+for i in range(0, len(datalist)):
+    if datalist[i] == []:
+        break
+    # find arduino signal Pin
+    ard = re.findall('[A,D]\d+', datalist[i][0])
+    if ard != []:
+        # find PXx
+        pxx = re.findall('P[A-Z]\d+', datalist[i][2])
+        if pxx != []:
+            # Search to PXx
+            for j in range(0, len(pxx)):
+                for k in range(0, len(pinmap)):
+                    # found PXx
+                    if pxx[j] == pinmap[k][0]:
+                        # Merge to pinmap
+                        pinmap[k].append(ard[0])
+                        pinmap[k].append(datalist[i][1])
+                        break
+
+# Output CSV format
+fout = open(config.DATA.OUTPUT_FILE, 'w')
+fout.write('PIN')
+for i in range(0, (config.PINFORMAT_CONFIG.AF_NUM + 1)):
+    fout.write(',AF{:d}'.format(i))
+# Arduino map
+fout.write(',ArdPIN,ArdTAG')
+fout.write('\n')
+
+for i in range(0, len(pinmap)):
+    print(pinmap[i])
+    fout.write(','.join(pinmap[i]) + '\n')
+fout.close()
